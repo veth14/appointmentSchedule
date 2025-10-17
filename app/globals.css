@@ -8,37 +8,44 @@
   }
 
   /* Import Inter font via CSS fallback - prefer local or user-installed fonts */
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
   :root {
-    /* Light neutral background */
-    --background:  #F8FAFC; /* Very Light Gray */
+    /* Light neutral background - Enhanced */
+    --background:  #F9FAFB; /* Very Light Gray */
     --surface:     #FFFFFF; /* Card Surface */
-    --foreground:  #1E293B; /* Dark Slate (Text Primary) */
-    --muted:       #64748B; /* Gray-Blue (Text Secondary) */
-    --border:      #E2E8F0; /* Light Gray (Borders) */
+    --foreground:  #111827; /* Darker for better contrast */
+    --muted:       #6B7280; /* Gray-Blue (Text Secondary) */
+    --border:      #E5E7EB; /* Light Gray (Borders) */
 
-    /* Primary brand (Health & Clarity Theme) */
-    --primary:     #1E90FF; /* Dodger Blue */
+    /* Primary brand (Modern Health & Clarity Theme) */
+    --primary:     #2563EB; /* Modern Blue */
+    --primary-hover: #1D4ED8;
     --primary-foreground: #FFFFFF;
-    --secondary:   #20C997; /* Teal Green */
-    --accent:      #1E90FF; /* keep accent consistent with primary */
+    --secondary:   #10B981; /* Emerald Green */
+    --secondary-hover: #059669;
+    --accent:      #8B5CF6; /* Purple accent */
 
-    /* Status Colors */
-    --success:     #16A34A; /* Done */
-    --danger:      #DC2626; /* Canceled */
-    --warning:     #FACC15; /* Rescheduled / Pending */
+    /* Status Colors - Enhanced */
+    --success:     #10B981; /* Done */
+    --success-light: #D1FAE5;
+    --danger:      #EF4444; /* Canceled */
+    --danger-light: #FEE2E2;
+    --warning:     #F59E0B; /* Rescheduled / Pending */
+    --warning-light: #FEF3C7;
     --info:        #3B82F6; /* Upcoming */
+    --info-light:  #DBEAFE;
   }
 
   body {
     @apply antialiased;
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
     color: var(--foreground);
-    background: linear-gradient(180deg, var(--background), #f1f5f9 60%);
+    background: linear-gradient(135deg, #F9FAFB 0%, #EFF6FF 50%, #F3F4F6 100%);
     font-feature-settings: 'cv11', 'ss01';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.011em;
   }
 }
 
@@ -129,5 +136,92 @@
 
   .scrollbar-thumb-gray-400:hover::-webkit-scrollbar-thumb:hover {
     background: rgba(156, 163, 175, 0.7);
+  }
+
+  /* Modern animations */
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  .animate-slide-in-up {
+    animation: slideInUp 0.4s ease-out;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.3s ease-out;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  /* Enhanced card styles */
+  .card-elevated {
+    @apply bg-white rounded-2xl border border-gray-200/60 shadow-md-soft transition-all duration-300;
+  }
+
+  .card-elevated:hover {
+    @apply shadow-lg-soft -translate-y-0.5;
+  }
+
+  /* Gradient text effect */
+  .gradient-text {
+    background: linear-gradient(135deg, #2563EB 0%, #8B5CF6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Shimmer loading effect */
+  .shimmer {
+    background: linear-gradient(90deg, #f3f4f6 0%, #e5e7eb 50%, #f3f4f6 100%);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  /* Badge styles */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
+
+  /* Focus visible styles */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-blue-500 ring-offset-2;
   }
 }

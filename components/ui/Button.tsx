@@ -19,20 +19,20 @@ export default function Button({
   disabled,
   ...props
 }: ButtonProps) {
-  const baseClasses = 'inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md';
+  const baseClasses = 'inline-flex items-center justify-center gap-2.5 font-bold rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95';
 
   const variantClasses = {
-    primary: 'bg-primary text-primary-foreground hover:brightness-95 focus:ring-primary shadow-lg-soft',
-    secondary: 'bg-secondary text-white hover:brightness-95 focus:ring-secondary',
-    outline: 'border-2 border-border bg-surface text-foreground hover:bg-surface/95 focus:ring-border',
-    ghost: 'text-foreground hover:bg-surface/60 focus:ring-border',
-    danger: 'bg-danger text-white hover:brightness-95 focus:ring-danger',
+    primary: 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 focus:ring-blue-500/30 shadow-lg hover:shadow-xl',
+    secondary: 'bg-gradient-to-r from-emerald-500 to-green-600 text-white hover:from-emerald-600 hover:to-green-700 focus:ring-green-500/30 shadow-lg hover:shadow-xl',
+    outline: 'border-2 border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:ring-gray-300 shadow-md hover:shadow-lg',
+    ghost: 'text-gray-700 hover:bg-gray-100 focus:ring-gray-300 hover:shadow-md',
+    danger: 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 focus:ring-red-500/30 shadow-lg hover:shadow-xl',
   };
 
   const sizeClasses = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
+    sm: 'px-4 py-2 text-sm',
+    md: 'px-5 py-2.5 text-base',
+    lg: 'px-7 py-3.5 text-lg',
   };
 
   return (

@@ -11,6 +11,7 @@ interface MeetingCardProps {
   onEdit: (meeting: Meeting) => void;
   onDelete: (id: string) => void;
   onStatusChange: (id: string, status: MeetingStatus) => void;
+  onClick?: (meeting: Meeting) => void;
   isNext?: boolean;
   isPinned?: boolean;
 }
@@ -20,6 +21,7 @@ export default function MeetingCard({
   onEdit,
   onDelete,
   onStatusChange,
+  onClick,
   isNext = false,
   isPinned = false,
 }: MeetingCardProps) {
@@ -70,91 +72,98 @@ export default function MeetingCard({
   return (
     <div
       ref={cardRef}
-      className={`group relative flex items-start gap-4 bg-white border border-gray-200/60 rounded-xl px-4 py-4 transform transition-all duration-200 hover:shadow-lg hover:border-gray-300/80 ${
+      onClick={() => onClick?.(meeting)}
+      className={`group relative flex items-start gap-3 bg-white border rounded-xl px-4 py-3 transform transition-all duration-300 hover:shadow-lg hover:scale-[1.01] ${
         meeting.status === 'canceled' ? 'opacity-60' : ''
-      } ${isPinned ? 'shadow-lg border-blue-400/60 bg-blue-50/30' : 'shadow-sm'}`}
+      } ${
+        isPinned 
+          ? 'shadow-lg border-blue-500/40 bg-gradient-to-br from-white via-blue-50/30 to-white ring-2 ring-blue-500/20' 
+          : 'shadow-sm border-gray-200/60 hover:border-gray-300/80'
+      } ${onClick ? 'cursor-pointer' : ''}`}
     >
-      {/* Status accent bar */}
+      {/* Enhanced Status accent bar with gradient */}
       <div
         className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl`}
         style={{
           background:
             meeting.status === 'done'
-              ? '#10B981'
+              ? 'linear-gradient(180deg, #10B981 0%, #059669 100%)'
               : meeting.status === 'canceled'
-              ? '#EF4444'
-              : '#3B82F6',
+              ? 'linear-gradient(180deg, #EF4444 0%, #DC2626 100%)'
+              : 'linear-gradient(180deg, #3B82F6 0%, #2563EB 100%)',
         }}
       />
 
-      <div className="flex-1 min-w-0 pl-2">
+      <div className="flex-1 min-w-0 pl-1">
         {/* Header: Name and Hospital */}
-        <div className="flex items-start justify-between gap-3 mb-2">
+        <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h4 className="text-base font-semibold text-gray-900 truncate">
-                {meeting.doctorName}
-              </h4>
-              <span className="text-gray-400">•</span>
-              <span className="text-sm text-gray-600 truncate">
-                {meeting.hospitalName}
-              </span>
-            </div>
+            <h4 className="text-base font-bold text-gray-900 truncate mb-0.5">
+              {meeting.doctorName}
+            </h4>
+            <span className="text-xs text-gray-600 font-medium truncate block">
+              {meeting.hospitalName}
+            </span>
           </div>
 
           <StatusBadge status={meeting.status} size="sm" />
         </div>
 
-        {/* Time and Location */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600 mb-2">
+        {/* Time and Location - More compact */}
+        <div className="flex items-center gap-3 text-xs text-gray-700 mb-2">
           <div className="inline-flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-gray-500" />
-            <span className="font-medium">{meetingTime}</span>
+            <Clock className="w-3.5 h-3.5 text-blue-600" />
+            <span className="font-semibold">{meetingTime}</span>
           </div>
           <div className="inline-flex items-center gap-1.5">
-            <MapPin className="w-4 h-4 text-gray-500" />
-            <span className="truncate">{meeting.hospitalAddress}</span>
+            <MapPin className="w-3.5 h-3.5 text-gray-500" />
+            <span className="truncate font-medium">{meeting.hospitalAddress}</span>
           </div>
         </div>
 
-        {/* Purpose */}
+        {/* Purpose - Compact */}
         {meeting.purpose && (
-          <div className="text-sm text-gray-700 mb-1">{meeting.purpose}</div>
-        )}
-
-        {/* Notes */}
-        {meeting.notes && (
-          <div className="text-sm text-gray-500 line-clamp-1">{meeting.notes}</div>
+          <div className="text-xs text-gray-700 font-medium line-clamp-1">
+            {meeting.purpose}
+          </div>
         )}
       </div>
 
-      {/* Actions: Mark Done is always visible for non-done meetings; edit/delete remain hover actions */}
-      <div className="flex items-center gap-2">
+      {/* Compact Actions */}
+      <div className="flex flex-col items-center gap-1" onClick={(e) => e.stopPropagation()}>
         {meeting.status !== 'done' && (
           <button
-            onClick={() => onStatusChange(meeting.id, 'done')}
-            className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-100 text-green-700 rounded-md text-sm font-semibold shadow-sm hover:bg-green-100 transition"
+            onClick={(e) => {
+              e.stopPropagation();
+              onStatusChange(meeting.id, 'done');
+            }}
+            className="p-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200"
             title="Mark as done"
           >
             <CheckCircle2 className="w-4 h-4" />
-            Done
           </button>
         )}
 
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div className="flex flex-col items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
           <button
-            onClick={() => onEdit(meeting)}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(meeting);
+            }}
+            className="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-100 transition-all duration-200"
             title="Edit"
           >
-            <Edit2 className="w-4 h-4 text-blue-600" />
+            <Edit2 className="w-3.5 h-3.5 text-blue-700" />
           </button>
           <button
-            onClick={handleDelete}
-            className="p-2 rounded-lg hover:bg-red-50 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete();
+            }}
+            className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 border border-red-100 transition-all duration-200"
             title="Delete"
           >
-            <Trash2 className="w-4 h-4 text-red-600" />
+            <Trash2 className="w-3.5 h-3.5 text-red-700" />
           </button>
         </div>
       </div>

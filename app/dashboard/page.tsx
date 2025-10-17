@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Meeting, MeetingFormData, MeetingStatus } from '@/types/meeting';
 import { Hospital } from '@/types/hospital';
 import { WeeklySummary } from '@/types';
@@ -10,7 +10,7 @@ import MeetingCard from '@/components/MeetingCard';
 import MeetingFormModal from '@/components/MeetingFormModal';
 // WeekNavigation removed per request
 import FilterSearchBar from '@/components/FilterSearchBar';
-import TodaySummaryCard from '@/components/TodaySummaryCard';
+import MeetingPreviewPanel from '@/components/MeetingPreviewPanel';
 import {
   getMeetingsByWeek,
   createMeeting,
@@ -27,7 +27,6 @@ import {
   formatDate,
   getDayName,
   isSameDay,
-  isToday,
 } from '@/lib/utils/dateHelpers';
 
 export default function DashboardPage() {
@@ -37,7 +36,10 @@ export default function DashboardPage() {
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
+  const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const MEETINGS_PER_PAGE = 3; // Default 3 meetings per page
 
   // Refresh data helper used by effect and handlers
   const refreshData = useCallback(async () => {
@@ -147,7 +149,12 @@ export default function DashboardPage() {
     setEditingMeeting(null);
   };
 
+  const handleMeetingClick = (meeting: Meeting) => {
+    setSelectedMeeting(meeting);
+  };
+
   const handleSearch = (query: string) => {
+    setCurrentPage(1); // Reset to first page on search
     if (!query) {
       setFilteredMeetings(meetings);
       return;
@@ -166,6 +173,7 @@ export default function DashboardPage() {
   };
 
   const handleFilterStatus = (status: MeetingStatus | 'all') => {
+    setCurrentPage(1); // Reset to first page on filter
     if (status === 'all') {
       setFilteredMeetings(meetings);
     } else {
@@ -174,6 +182,7 @@ export default function DashboardPage() {
   };
 
   const handleFilterHospital = (hospitalId: string) => {
+    setCurrentPage(1); // Reset to first page on filter
     if (hospitalId === 'all') {
       setFilteredMeetings(meetings);
     } else {
@@ -182,20 +191,24 @@ export default function DashboardPage() {
   };
 
   return (
-  // Full width container closer to the sidebar
-  <div className="w-full px-6 md:px-8 lg:px-10 xl:px-12 pb-10 overflow-x-hidden bg-gray-50/50">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-6 pt-6">
-        <div className="flex-1 max-w-2xl">
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-1">
-            Tasks for Today
-          </h1>
-          <p className="text-sm text-gray-600 mb-4">
-            Manage your doctor meetings across hospitals
-          </p>
+  <div className="w-full px-6 md:px-8 lg:px-10 xl:px-12 pb-10 overflow-x-hidden animate-fade-in">
+      {/* Header with gradient background */}
+      <div className="flex flex-col gap-6 mb-8 pt-8 animate-slide-in-up max-w-5xl">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-1 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></div>
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+              Tasks for Today
+            </h1>
+            <p className="text-base text-gray-600 font-medium">
+              Manage your doctor meetings across hospitals
+            </p>
+          </div>
+        </div>
 
-          {/* Move search bar to the top */}
-          <div className="w-full">
+        {/* Search bar with New Meeting button */}
+        <div className="flex items-center gap-3 w-full animate-slide-in-right">
+          <div className="flex-1">
             <FilterSearchBar
               onSearch={handleSearch}
               onFilterStatus={handleFilterStatus}
@@ -203,24 +216,21 @@ export default function DashboardPage() {
               hospitals={hospitals}
             />
           </div>
-        </div>
-
-        <div className="flex items-center gap-3">
           <Button
             variant="primary"
             icon={<Plus className="w-5 h-5" />}
             onClick={() => setIsModalOpen(true)}
-            className="shadow-sm"
+            className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex-shrink-0"
           >
             New Meeting
           </Button>
         </div>
       </div>
 
-      {/* Two-column layout: left = today's vertical list (bounded & scrollable), right = controls (sticky) */}
-      <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* Two-column layout: left = today's meetings table, right = preview panel */}
+      <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left column: Today's meetings - occupy 8/12 on large screens */}
-        <div className="col-span-1 lg:col-span-8 flex flex-col">
+        <div className="col-span-1 lg:col-span-8 flex flex-col h-full">
           {loading ? (
             <div className="text-center py-12">
               <p className="text-gray-600">Loading meetings...</p>
@@ -232,18 +242,24 @@ export default function DashboardPage() {
                 const dayMeetings = getMeetingsForDay(today);
 
                 return (
-                  <div className="w-full flex flex-col min-h-0">
-                    <div className="bg-white border border-gray-200/60 rounded-xl p-4 shadow-sm mb-4">
+                  <div className="w-full flex flex-col min-h-0 justify-between">
+                    <div>
+                    <div className="card-elevated p-5 mb-5 animate-slide-in-up bg-gradient-to-br from-white to-blue-50/30">
                       <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-lg font-bold text-gray-900">
-                            Today — {formatDate(today, 'ddd, MMM D')}
-                          </h3>
-                          <p className="text-sm text-gray-600">
-                            {formatDate(today, 'YYYY')}
-                          </p>
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <span className="text-white font-bold text-lg">{formatDate(today, 'D')}</span>
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-bold text-gray-900">
+                              {formatDate(today, 'ddd, MMM D')}
+                            </h3>
+                            <p className="text-sm text-gray-600 font-medium">
+                              {formatDate(today, 'YYYY')}
+                            </p>
+                          </div>
                         </div>
-                        <div className="px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-600 text-white">
+                        <div className="px-4 py-2 rounded-xl text-sm font-bold bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md">
                           {dayMeetings.length} {dayMeetings.length === 1 ? 'meeting' : 'meetings'}
                         </div>
                       </div>
@@ -257,30 +273,108 @@ export default function DashboardPage() {
                           onEdit={handleEditMeeting}
                           onDelete={handleDeleteMeeting}
                           onStatusChange={handleStatusChange}
+                          onClick={handleMeetingClick}
                           isPinned
                         />
                       </div>
                     )}
 
-                    {/* Bounded scrollable list to prevent endless page scrolling */}
-                    <div className="overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 max-h-[calc(100vh-20rem)]">
-                      {dayMeetings.length > 0 ? (
-                        dayMeetings
-                          .filter((m) => m.id !== pinnedMeeting?.id)
-                          .map((meeting) => (
-                            <MeetingCard
-                              key={meeting.id}
-                              meeting={meeting}
-                              onEdit={handleEditMeeting}
-                              onDelete={handleDeleteMeeting}
-                              onStatusChange={handleStatusChange}
-                            />
-                          ))
-                      ) : (
-                        <div className="bg-white rounded-xl p-8 border border-gray-200/60 text-center">
-                          <p className="text-sm text-gray-600">No meetings scheduled for today</p>
-                        </div>
-                      )}
+                    {/* Paginated meeting list - Fixed 4 slots */}
+                    <div className="space-y-3 h-[456px]">
+                      {(() => {
+                        const nonPinnedMeetings = dayMeetings.filter((m) => m.id !== pinnedMeeting?.id);
+                        // If there's a pinned meeting, show 3 regular meetings. Otherwise show 4.
+                        const itemsPerPage = pinnedMeeting ? 3 : 4;
+                        const totalPages = Math.ceil(nonPinnedMeetings.length / itemsPerPage);
+                        const startIndex = (currentPage - 1) * itemsPerPage;
+                        const paginatedMeetings = nonPinnedMeetings.slice(startIndex, startIndex + itemsPerPage);
+
+                        // Create empty slots to always show exactly itemsPerPage slots
+                        const emptySlots = itemsPerPage - paginatedMeetings.length;
+
+                        return (
+                          <>
+                            {dayMeetings.length > 0 ? (
+                              <>
+                                {/* Actual meetings */}
+                                {paginatedMeetings.map((meeting, index) => (
+                                  <div 
+                                    key={meeting.id}
+                                    className="animate-slide-in-up"
+                                    style={{ animationDelay: `${index * 0.05}s` }}
+                                  >
+                                    <MeetingCard
+                                      meeting={meeting}
+                                      onEdit={handleEditMeeting}
+                                      onDelete={handleDeleteMeeting}
+                                      onStatusChange={handleStatusChange}
+                                      onClick={handleMeetingClick}
+                                    />
+                                  </div>
+                                ))}
+
+                                {/* Empty placeholder slots - Match meeting card height exactly */}
+                                {Array.from({ length: emptySlots }).map((_, index) => (
+                                  <div 
+                                    key={`empty-${index}`}
+                                    className="relative bg-gray-50/50 border-2 border-dashed border-gray-200 rounded-xl h-[108px] flex items-center justify-center"
+                                  >
+                                    {/* Dashed accent bar */}
+                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gray-300/30 rounded-l-xl"></div>
+                                    
+                                    <p className="text-sm text-gray-400 font-semibold italic">Empty slot</p>
+                                  </div>
+                                ))}
+                              </>
+                            ) : (
+                              <div className="card-elevated p-10 text-center animate-fade-in h-full flex flex-col items-center justify-center">
+                                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  </svg>
+                                </div>
+                                <p className="text-gray-900 font-semibold mb-2">No meetings scheduled</p>
+                                <p className="text-sm text-gray-600">Your schedule is clear for today</p>
+                              </div>
+                            )}
+
+                            {/* Pagination Controls - Always at bottom */}
+                            {totalPages > 1 && dayMeetings.length > 0 && (
+                              <div className="card-elevated p-7 mt-4 animate-fade-in">
+                                <div className="flex items-center justify-between">
+                                  <button
+                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                    disabled={currentPage === 1}
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-xl font-semibold text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 disabled:hover:scale-100"
+                                  >
+                                    <ChevronLeft className="w-4 h-4" />
+                                    Previous
+                                  </button>
+
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-semibold text-gray-700">
+                                      Page {currentPage} of {totalPages}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      ({nonPinnedMeetings.length} total)
+                                    </span>
+                                  </div>
+
+                                  <button
+                                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-xl font-semibold text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 disabled:hover:scale-100"
+                                  >
+                                    Next
+                                    <ChevronRight className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
                     </div>
                   </div>
                 );
@@ -289,15 +383,15 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Right column: Controls - occupy 4/12 on large screens */}
-        <aside className="col-span-1 lg:col-span-4">
-          <div className="sticky top-24 space-y-4">
-            <TodaySummaryCard
-              total={filteredMeetings.filter(m => isToday(m.dateTime)).length}
-              scheduled={filteredMeetings.filter(m => isToday(m.dateTime) && m.status === 'scheduled').length}
-              done={filteredMeetings.filter(m => isToday(m.dateTime) && m.status === 'done').length}
-              canceled={filteredMeetings.filter(m => isToday(m.dateTime) && m.status === 'canceled').length}
-              nextUpTime={pinnedMeeting ? new Date(pinnedMeeting.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null}
+        {/* Right column: Preview Panel only - occupy 4/12 on large screens */}
+        <aside className="col-span-1 lg:col-span-4 flex flex-col">
+          <div className="sticky top-24 flex-1">
+            {/* Meeting Preview Panel */}
+            <MeetingPreviewPanel
+              meeting={selectedMeeting}
+              onClose={() => setSelectedMeeting(null)}
+              onEdit={handleEditMeeting}
+              onDelete={handleDeleteMeeting}
             />
           </div>
         </aside>
