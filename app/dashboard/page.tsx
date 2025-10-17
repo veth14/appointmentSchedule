@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import { Meeting, MeetingFormData, MeetingStatus } from '@/types/meeting';
 import { Hospital } from '@/types/hospital';
@@ -39,12 +39,8 @@ export default function DashboardPage() {
   const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load data
-  useEffect(() => {
-    loadData();
-  }, [currentWeek]);
-
-  const loadData = async () => {
+  // Refresh data helper used by effect and handlers
+  const refreshData = useCallback(async () => {
     setLoading(true);
     try {
       const [meetingsData, hospitalsData] = await Promise.all([
@@ -59,7 +55,12 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentWeek]);
+
+  useEffect(() => {
+    // call the stable refreshData callback
+    refreshData();
+  }, [refreshData]);
 
   // Calculate weekly summary
   const weeklySummary: WeeklySummary = {
@@ -69,8 +70,12 @@ export default function DashboardPage() {
     canceled: filteredMeetings.filter(m => m.status === 'canceled').length,
   };
 
-  // Get week days
-  const weekDays = getWeekDays(currentWeek);
+  // Get week days and filter to weekdays (Mon-Fri)
+  const weekDays = getWeekDays(currentWeek).filter((d) => {
+    const day = d.getDay();
+    // getDay(): 0 = Sunday, 6 = Saturday -> keep 1..5
+    return day >= 1 && day <= 5;
+  });
 
   // Get meetings for a specific day
   const getMeetingsForDay = (day: Date) => {
@@ -82,25 +87,25 @@ export default function DashboardPage() {
   // Handlers
   const handleCreateMeeting = async (data: MeetingFormData) => {
     await createMeeting(data);
-    await loadData();
+    await refreshData();
   };
 
   const handleUpdateMeeting = async (data: MeetingFormData) => {
     if (editingMeeting) {
       await updateMeeting(editingMeeting.id, data);
-      await loadData();
+      await refreshData();
       setEditingMeeting(null);
     }
   };
 
   const handleDeleteMeeting = async (id: string) => {
     await deleteMeeting(id);
-    await loadData();
+    await refreshData();
   };
 
   const handleStatusChange = async (id: string, status: MeetingStatus) => {
     await updateMeetingStatus(id, status);
-    await loadData();
+    await refreshData();
   };
 
   const handleEditMeeting = (meeting: Meeting) => {
@@ -148,7 +153,8 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-6">
+  // Use full width with reduced left/right padding so content sits closer to the sidebar
+  <div className="w-full px-4 md:px-6 lg:px-6 xl:px-8 2xl:px-10 space-y-6 pb-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -196,13 +202,13 @@ export default function DashboardPage() {
       ) : (
         <>
           {/* Week View */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 auto-rows-min">
             {weekDays.map((day) => {
               const dayMeetings = getMeetingsForDay(day);
               const isCurrentDay = isToday(day);
-              
+
               return (
-                <div key={day.toISOString()} className="flex flex-col h-[calc(100vh-28rem)]">
+                <div key={day.toISOString()} className="flex flex-col min-h-0" style={{ minWidth: 230 }}>
                   {/* Day Header - Sticky */}
                   <div className={`
                     sticky top-0 z-10 bg-white/90 backdrop-blur-sm border rounded-2xl p-4 shadow-md-soft mb-3

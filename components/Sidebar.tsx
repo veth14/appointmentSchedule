@@ -45,7 +45,7 @@ export default function Sidebar() {
       <aside
         className={`
           fixed top-0 left-0 h-full bg-white/80 backdrop-blur-xl border-r border-gray-200/50 transition-transform duration-300 z-40
-          w-64 shadow-xl-soft
+          w-60 shadow-xl-soft
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
@@ -97,15 +97,15 @@ export default function Sidebar() {
             <div className="px-4 py-3 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl border border-gray-200/50">
               <p className="text-xs text-gray-600 font-medium">Version 1.0.0</p>
               <p className="text-xs text-gray-500 mt-1">
-                © 2024 Doctor Meeting Tracker
+                © 2025 Doctor Meeting Tracker
               </p>
             </div>
           </div>
         </div>
       </aside>
 
-      {/* Spacer for desktop to prevent content from going under sidebar */}
-      <div className="hidden lg:block w-64 flex-shrink-0" />
+  {/* Spacer for desktop to prevent content from going under sidebar */}
+  <div className="hidden lg:block w-60 flex-shrink-0" />
     </>
   );
 }
