@@ -11,6 +11,7 @@ import MeetingFormModal from '@/components/MeetingFormModal';
 // WeekNavigation removed per request
 import FilterSearchBar from '@/components/FilterSearchBar';
 import MeetingPreviewPanel from '@/components/MeetingPreviewPanel';
+import LoadingScreen from '@/components/LoadingScreen';
 import {
   getMeetingsByWeek,
   createMeeting,
@@ -190,17 +191,21 @@ export default function DashboardPage() {
     }
   };
 
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
   return (
   <div className="w-full px-6 md:px-8 lg:px-10 xl:px-12 pb-10 overflow-x-hidden animate-fade-in">
-      {/* Header with gradient background */}
-      <div className="flex flex-col gap-6 mb-8 pt-8 animate-slide-in-up max-w-5xl">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-1 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></div>
+      {/* Modern Header */}
+      <div className="flex flex-col gap-5 mb-8 pt-8 animate-slide-in-up max-w-5xl">
+        <div className="flex items-start gap-3">
+          <div className="w-1 h-16 bg-gradient-to-b from-blue-500 to-cyan-600 rounded-full"></div>
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+            <h1 className="text-3xl font-bold text-gray-900 mb-1">
               Tasks for Today
             </h1>
-            <p className="text-base text-gray-600 font-medium">
+            <p className="text-sm text-gray-600">
               Manage your doctor meetings across hospitals
             </p>
           </div>
@@ -220,7 +225,7 @@ export default function DashboardPage() {
             variant="primary"
             icon={<Plus className="w-5 h-5" />}
             onClick={() => setIsModalOpen(true)}
-            className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex-shrink-0"
+            className="shadow-md hover:shadow-lg transition-all duration-200 flex-shrink-0"
           >
             New Meeting
           </Button>
@@ -231,11 +236,6 @@ export default function DashboardPage() {
       <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left column: Today's meetings - occupy 8/12 on large screens */}
         <div className="col-span-1 lg:col-span-8 flex flex-col h-full">
-          {loading ? (
-            <div className="text-center py-12">
-              <p className="text-gray-600">Loading meetings...</p>
-            </div>
-          ) : (
             <div className="flex flex-col gap-4 h-full">
               {(() => {
                 const today = new Date();
@@ -244,22 +244,23 @@ export default function DashboardPage() {
                 return (
                   <div className="w-full flex flex-col min-h-0 justify-between">
                     <div>
-                    <div className="card-elevated p-5 mb-5 animate-slide-in-up bg-gradient-to-br from-white to-blue-50/30">
+                    <div className="card-elevated p-4 mb-5 animate-slide-in-up bg-white border border-gray-100">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                            <span className="text-white font-bold text-lg">{formatDate(today, 'D')}</span>
+                        <div className="flex items-center gap-3">
+                          <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-white font-bold text-xl leading-none">{formatDate(today, 'D')}</span>
+                            <span className="text-blue-100 text-xs font-medium mt-0.5">{formatDate(today, 'MMM')}</span>
                           </div>
                           <div>
-                            <h3 className="text-xl font-bold text-gray-900">
-                              {formatDate(today, 'ddd, MMM D')}
+                            <h3 className="text-lg font-bold text-gray-900">
+                              {formatDate(today, 'dddd')}
                             </h3>
-                            <p className="text-sm text-gray-600 font-medium">
-                              {formatDate(today, 'YYYY')}
+                            <p className="text-sm text-gray-500 font-medium">
+                              {formatDate(today, 'MMMM D, YYYY')}
                             </p>
                           </div>
                         </div>
-                        <div className="px-4 py-2 rounded-xl text-sm font-bold bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md">
+                        <div className="px-4 py-2 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">
                           {dayMeetings.length} {dayMeetings.length === 1 ? 'meeting' : 'meetings'}
                         </div>
                       </div>
@@ -380,7 +381,6 @@ export default function DashboardPage() {
                 );
               })()}
             </div>
-          )}
         </div>
 
         {/* Right column: Preview Panel only - occupy 4/12 on large screens */}

@@ -104,7 +104,7 @@ export default function FilterSearchBar({
             {/* Hospital Filter */}
             <div>
               <label className="block text-sm font-bold text-gray-800 mb-2.5 flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-purple-600"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-cyan-600"></div>
                 Hospital
               </label>
               <select

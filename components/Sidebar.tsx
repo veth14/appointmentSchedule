@@ -9,7 +9,7 @@ import { APP_NAME } from '@/constants/appConfig';
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: Calendar },
   { name: 'Meetings', href: '/dashboard', icon: Users },
-  { name: 'Calendar', href: '/dashboard', icon: Settings },
+  { name: 'Calendar', href: '/dashboard', icon: Calendar },
   { name: 'Hospitals', href: '/dashboard', icon: Building2 },
   { name: 'Settings', href: '/dashboard', icon: Settings },
 ];
@@ -54,7 +54,7 @@ export default function Sidebar() {
           {/* Logo/Brand */}
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center shadow-md">
                 <Calendar className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -67,7 +67,7 @@ export default function Sidebar() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               const Icon = item.icon;

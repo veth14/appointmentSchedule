@@ -20,16 +20,16 @@ export default function MeetingPreviewPanel({
 }: MeetingPreviewPanelProps) {
   if (!meeting) {
     return (
-      <div className="card-elevated bg-gradient-to-br from-white via-blue-50/20 to-purple-50/20 animate-slide-in-up h-[720px] overflow-hidden">
+      <div className="card-elevated bg-white border border-gray-100 animate-slide-in-up h-[720px] overflow-hidden">
         {/* Empty Header */}
-        <div className="bg-gradient-to-r from-gray-400 to-gray-500 p-5 relative">
+        <div className="bg-gradient-to-r from-slate-700 to-slate-800 p-5 relative">
           <div className="flex items-start gap-3">
-            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-              <Calendar className="w-6 h-6 text-white" />
+            <div className="w-11 h-11 bg-white/10 rounded-xl flex items-center justify-center">
+              <Calendar className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1">
-              <h3 className="text-xl font-bold text-white mb-1">No Meeting Selected</h3>
-              <p className="text-sm text-gray-100">Click on a meeting to view details</p>
+              <h3 className="text-lg font-bold text-white mb-0.5">No Meeting Selected</h3>
+              <p className="text-xs text-slate-300">Click on a meeting to view details</p>
             </div>
           </div>
         </div>
@@ -49,7 +49,7 @@ export default function MeetingPreviewPanel({
             <div className="bg-gray-50 rounded-xl p-4 border border-gray-200/50 h-24"></div>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-50 to-purple-50/30 rounded-xl p-4 border border-blue-200/50 h-28"></div>
+          <div className="bg-blue-50 rounded-xl p-4 border border-blue-200/50 h-28"></div>
 
           <div className="space-y-2">
             <div className="h-4 bg-gray-200 rounded w-32"></div>
@@ -75,23 +75,23 @@ export default function MeetingPreviewPanel({
   };
 
   return (
-    <div className="card-elevated bg-gradient-to-br from-white via-blue-50/20 to-purple-50/20 animate-slide-in-up h-[720px] overflow-hidden">
+    <div className="card-elevated bg-white border border-gray-100 animate-slide-in-up h-[720px] overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-5 relative">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-5 relative">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-all duration-200 hover:scale-110"
+          className="absolute top-4 right-4 p-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-all duration-200"
           title="Close"
         >
-          <X className="w-5 h-5 text-white" />
+          <X className="w-4 h-4 text-white" />
         </button>
         <div className="flex items-start gap-3 pr-12">
-          <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-            <User className="w-6 h-6 text-white" />
+          <div className="w-11 h-11 bg-white/10 rounded-xl flex items-center justify-center">
+            <User className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1">
-            <h3 className="text-xl font-bold text-white mb-1">Meeting Details</h3>
-            <p className="text-sm text-blue-100">Full information view</p>
+            <h3 className="text-lg font-bold text-white mb-0.5">Meeting Details</h3>
+            <p className="text-xs text-blue-100">Full information view</p>
           </div>
         </div>
       </div>
@@ -118,7 +118,7 @@ export default function MeetingPreviewPanel({
           </div>
           <div className="bg-gray-50 rounded-xl p-4 border border-gray-200/50">
             <div className="flex items-center gap-2 mb-2">
-              <Clock className="w-5 h-5 text-purple-600" />
+              <Clock className="w-5 h-5 text-blue-600" />
               <label className="text-xs font-bold text-gray-600 uppercase tracking-wide">Time</label>
             </div>
             <p className="text-base font-bold text-gray-900">{formatTime(meeting.dateTime)}</p>
@@ -126,7 +126,7 @@ export default function MeetingPreviewPanel({
         </div>
 
         {/* Hospital Info */}
-        <div className="bg-gradient-to-br from-blue-50 to-purple-50/30 rounded-xl p-4 border border-blue-200/50">
+        <div className="bg-blue-50 rounded-xl p-4 border border-blue-200/50">
           <div className="flex items-center gap-2 mb-3">
             <Building2 className="w-5 h-5 text-blue-600" />
             <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">Hospital</label>
@@ -165,15 +165,15 @@ export default function MeetingPreviewPanel({
         <div className="flex gap-3 pt-4 border-t border-gray-200">
           <button
             onClick={() => onEdit(meeting)}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
+            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-md hover:shadow-lg transition-all duration-200"
           >
             <Edit2 className="w-4 h-4" />
             Edit Meeting
           </button>
           <button
             onClick={handleDelete}
-            className="px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl font-bold border border-red-200 hover:border-red-300 transition-all duration-200 hover:scale-105"
-            title="Delete"
+            className="p-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl border border-red-200 transition-all duration-200"
+            title="Delete meeting"
           >
             <Trash2 className="w-5 h-5" />
           </button>

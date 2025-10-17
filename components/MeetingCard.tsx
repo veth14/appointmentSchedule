@@ -73,7 +73,7 @@ export default function MeetingCard({
     <div
       ref={cardRef}
       onClick={() => onClick?.(meeting)}
-      className={`group relative flex items-start gap-3 bg-white border rounded-xl px-4 py-3 transform transition-all duration-300 hover:shadow-lg hover:scale-[1.01] ${
+      className={`group relative flex items-center gap-3 bg-white border rounded-xl px-4 py-3 transform transition-all duration-300 hover:shadow-lg hover:scale-[1.01] ${
         meeting.status === 'canceled' ? 'opacity-60' : ''
       } ${
         isPinned 
@@ -96,7 +96,7 @@ export default function MeetingCard({
 
       <div className="flex-1 min-w-0 pl-1">
         {/* Header: Name and Hospital */}
-        <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="flex items-start gap-2 mb-2">
           <div className="flex-1 min-w-0">
             <h4 className="text-base font-bold text-gray-900 truncate mb-0.5">
               {meeting.doctorName}
@@ -105,8 +105,6 @@ export default function MeetingCard({
               {meeting.hospitalName}
             </span>
           </div>
-
-          <StatusBadge status={meeting.status} size="sm" />
         </div>
 
         {/* Time and Location - More compact */}
@@ -129,8 +127,11 @@ export default function MeetingCard({
         )}
       </div>
 
-      {/* Compact Actions */}
-      <div className="flex flex-col items-center gap-1" onClick={(e) => e.stopPropagation()}>
+      {/* Status Badge and Actions - Right aligned */}
+      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+        <StatusBadge status={meeting.status} size="sm" />
+        
+        <div className="flex items-center gap-1.5">
         {meeting.status !== 'done' && (
           <button
             onClick={(e) => {
@@ -144,13 +145,12 @@ export default function MeetingCard({
           </button>
         )}
 
-        <div className="flex flex-col items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
           <button
             onClick={(e) => {
               e.stopPropagation();
               onEdit(meeting);
             }}
-            className="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-100 transition-all duration-200"
+            className="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-100 transition-all duration-200 opacity-0 group-hover:opacity-100"
             title="Edit"
           >
             <Edit2 className="w-3.5 h-3.5 text-blue-700" />
@@ -160,7 +160,7 @@ export default function MeetingCard({
               e.stopPropagation();
               handleDelete();
             }}
-            className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 border border-red-100 transition-all duration-200"
+            className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 border border-red-100 transition-all duration-200 opacity-0 group-hover:opacity-100"
             title="Delete"
           >
             <Trash2 className="w-3.5 h-3.5 text-red-700" />
