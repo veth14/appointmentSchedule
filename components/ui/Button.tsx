@@ -22,11 +22,11 @@ export default function Button({
   const baseClasses = 'inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md';
 
   const variantClasses = {
-    primary: 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 focus:ring-blue-500 shadow-lg-soft',
-    secondary: 'bg-gradient-to-r from-gray-600 to-gray-700 text-white hover:from-gray-700 hover:to-gray-800 focus:ring-gray-500',
-    outline: 'border-2 border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:ring-gray-500',
-    ghost: 'text-gray-700 hover:bg-gray-100/80 focus:ring-gray-500',
-    danger: 'bg-gradient-to-r from-red-600 to-rose-600 text-white hover:from-red-700 hover:to-rose-700 focus:ring-red-500',
+    primary: 'bg-primary text-primary-foreground hover:brightness-95 focus:ring-primary shadow-lg-soft',
+    secondary: 'bg-secondary text-white hover:brightness-95 focus:ring-secondary',
+    outline: 'border-2 border-border bg-surface text-foreground hover:bg-surface/95 focus:ring-border',
+    ghost: 'text-foreground hover:bg-surface/60 focus:ring-border',
+    danger: 'bg-danger text-white hover:brightness-95 focus:ring-danger',
   };
 
   const sizeClasses = {

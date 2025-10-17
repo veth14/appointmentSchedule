@@ -50,30 +50,30 @@ export default function FilterSearchBar({
   const hasActiveFilters = searchQuery || selectedStatus !== 'all' || selectedHospital !== 'all';
 
   return (
-    <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl shadow-md-soft">
+    <div className="bg-white border border-gray-200/60 rounded-xl shadow-sm">
       {/* Search Bar */}
-      <div className="flex items-center gap-2 p-4">
+      <div className="flex items-center gap-2 p-1">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Search by doctor, hospital, or notes..."
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-300/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all"
+            className="w-full pl-9 pr-3 py-2.5 border-0 rounded-lg focus:outline-none focus:ring-0 bg-transparent text-sm text-gray-900 placeholder:text-gray-500"
             suppressHydrationWarning
           />
         </div>
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className={`p-2.5 rounded-xl transition-all ${
+          className={`p-2 rounded-lg transition-all ${
             showFilters || hasActiveFilters
-              ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md-soft'
+              ? 'bg-blue-600 text-white'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
           suppressHydrationWarning
         >
-          <Filter className="w-5 h-5" />
+          <Filter className="w-4 h-4" />
         </button>
       </div>
 

@@ -44,23 +44,23 @@ export default function Sidebar() {
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 h-full bg-white/80 backdrop-blur-xl border-r border-gray-200/50 transition-transform duration-300 z-40
+          fixed top-0 left-0 h-full bg-surface/90 backdrop-blur-xl border-r border-border transition-transform duration-300 z-40
           w-60 shadow-xl-soft
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
         <div className="flex flex-col h-full">
           {/* Logo/Title */}
-          <div className="p-6 border-b border-gray-200/50">
+          <div className="p-6 border-b border-border">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg-soft">
                 <Calendar className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-gray-900 tracking-tight">
+                <h1 className="text-lg font-bold text-foreground tracking-tight">
                   {APP_NAME.split(' ')[0]}
                 </h1>
-                <p className="text-xs text-gray-500 font-medium">Schedule Tracker</p>
+                <p className="text-xs text-muted font-medium">Schedule Tracker</p>
               </div>
             </div>
           </div>
@@ -80,12 +80,12 @@ export default function Sidebar() {
                     flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
                     ${
                       isActive
-                        ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold shadow-md-soft'
-                        : 'text-gray-700 hover:bg-gray-100/60 font-medium'
+                        ? 'bg-primary text-primary-foreground font-semibold shadow-md-soft'
+                        : 'text-foreground hover:bg-surface/60 font-medium'
                     }
                   `}
                 >
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-500'}`} />
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-primary-foreground' : 'text-muted'}`} />
                   <span>{item.name}</span>
                 </Link>
               );
@@ -93,10 +93,10 @@ export default function Sidebar() {
           </nav>
 
           {/* Footer */}
-          <div className="p-4 border-t border-gray-200/50">
-            <div className="px-4 py-3 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl border border-gray-200/50">
-              <p className="text-xs text-gray-600 font-medium">Version 1.0.0</p>
-              <p className="text-xs text-gray-500 mt-1">
+          <div className="p-4 border-t border-border">
+            <div className="px-4 py-3 bg-surface rounded-xl border border-border">
+              <p className="text-xs text-foreground font-medium">Version 1.0.0</p>
+              <p className="text-xs text-muted mt-1">
                 © 2025 Doctor Meeting Tracker
               </p>
             </div>

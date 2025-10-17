@@ -1,5 +1,5 @@
 import { Meeting, MeetingFormData, MeetingStatus } from '@/types/meeting';
-import { generateId, generateMockMeetings } from '@/lib/utils/mockData';
+import { generateId, generateMockMeetings, generateWeekdayMeetings } from '@/lib/utils/mockData';
 import { getWeekRange } from '@/lib/utils/dateHelpers';
 import dayjs from 'dayjs';
 
@@ -7,7 +7,8 @@ import dayjs from 'dayjs';
 const isFirebaseConfigured = false; // Set to true when Firebase is configured
 
 // In-memory storage (fallback when Firebase is not configured)
-let inMemoryMeetings: Meeting[] = generateMockMeetings(15);
+// Generate deterministic meetings: 20 meetings per weekday (5 * 20 = 100)
+let inMemoryMeetings: Meeting[] = generateWeekdayMeetings(20);
 
 /**
  * Get all meetings for a specific week
@@ -217,6 +218,6 @@ export async function searchMeetings(query: string): Promise<Meeting[]> {
  */
 export function resetMeetingsData(): void {
   if (!isFirebaseConfigured) {
-    inMemoryMeetings = generateMockMeetings(15);
+    inMemoryMeetings = generateWeekdayMeetings(20);
   }
 }

@@ -1,9 +1,13 @@
 import { MeetingStatus } from '@/types';
+import { Sparkles, CheckCircle2, XCircle } from 'lucide-react';
+import type { ComponentType } from 'react';
 
 export interface StatusConfig {
   label: string;
   color: string;
-  icon: string;
+  // Icon component (lucide-react)
+  icon: ComponentType<{ className?: string }>;
+  // Tailwind utility classes for color/background/border
   className: string;
   bgColor: string;
   textColor: string;
@@ -13,29 +17,29 @@ export interface StatusConfig {
 export const STATUS_CONFIG: Record<MeetingStatus, StatusConfig> = {
   scheduled: {
     label: 'Scheduled',
-    color: 'yellow',
-    icon: 'Clock',
-    className: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    bgColor: 'bg-yellow-100',
-    textColor: 'text-yellow-800',
-    borderColor: 'border-yellow-200',
+    color: 'info',
+    icon: Sparkles,
+    className: 'bg-blue-100 text-blue-700 border border-blue-200',
+    bgColor: 'bg-blue-100',
+    textColor: 'text-blue-700',
+    borderColor: 'border-blue-200',
   },
   done: {
     label: 'Done',
-    color: 'green',
-    icon: 'CheckCircle2',
-    className: 'bg-green-100 text-green-800 border-green-200',
+    color: 'success',
+    icon: CheckCircle2,
+    className: 'bg-green-100 text-green-700 border border-green-200',
     bgColor: 'bg-green-100',
-    textColor: 'text-green-800',
+    textColor: 'text-green-700',
     borderColor: 'border-green-200',
   },
   canceled: {
     label: 'Canceled',
-    color: 'red',
-    icon: 'XCircle',
-    className: 'bg-red-100 text-red-800 border-red-200',
+    color: 'danger',
+    icon: XCircle,
+    className: 'bg-red-100 text-red-700 border border-red-200',
     bgColor: 'bg-red-100',
-    textColor: 'text-red-800',
+    textColor: 'text-red-700',
     borderColor: 'border-red-200',
   },
 };

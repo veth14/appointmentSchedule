@@ -7,8 +7,35 @@
     @apply border-gray-200;
   }
 
+  /* Import Inter font via CSS fallback - prefer local or user-installed fonts */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
+  :root {
+    /* Light neutral background */
+    --background:  #F8FAFC; /* Very Light Gray */
+    --surface:     #FFFFFF; /* Card Surface */
+    --foreground:  #1E293B; /* Dark Slate (Text Primary) */
+    --muted:       #64748B; /* Gray-Blue (Text Secondary) */
+    --border:      #E2E8F0; /* Light Gray (Borders) */
+
+    /* Primary brand (Health & Clarity Theme) */
+    --primary:     #1E90FF; /* Dodger Blue */
+    --primary-foreground: #FFFFFF;
+    --secondary:   #20C997; /* Teal Green */
+    --accent:      #1E90FF; /* keep accent consistent with primary */
+
+    /* Status Colors */
+    --success:     #16A34A; /* Done */
+    --danger:      #DC2626; /* Canceled */
+    --warning:     #FACC15; /* Rescheduled / Pending */
+    --info:        #3B82F6; /* Upcoming */
+  }
+
   body {
-    @apply text-gray-900 antialiased;
+    @apply antialiased;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    color: var(--foreground);
+    background: linear-gradient(180deg, var(--background), #f1f5f9 60%);
     font-feature-settings: 'cv11', 'ss01';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

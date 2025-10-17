@@ -8,9 +8,9 @@ import { WeeklySummary } from '@/types';
 import { Button } from '@/components/ui';
 import MeetingCard from '@/components/MeetingCard';
 import MeetingFormModal from '@/components/MeetingFormModal';
-import WeekNavigation from '@/components/WeekNavigation';
+// WeekNavigation removed per request
 import FilterSearchBar from '@/components/FilterSearchBar';
-import WeeklySummaryCard from '@/components/WeeklySummaryCard';
+import TodaySummaryCard from '@/components/TodaySummaryCard';
 import {
   getMeetingsByWeek,
   createMeeting,
@@ -79,10 +79,39 @@ export default function DashboardPage() {
 
   // Get meetings for a specific day
   const getMeetingsForDay = (day: Date) => {
-    return filteredMeetings.filter(meeting =>
-      isSameDay(meeting.dateTime, day)
-    ).sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime());
+    const meetingsForDay = filteredMeetings.filter(meeting => isSameDay(meeting.dateTime, day));
+
+    const now = new Date();
+
+    // Upcoming (at or after now) sorted soonest-first
+    const upcoming = meetingsForDay
+      .filter(m => new Date(m.dateTime) >= now)
+      .sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime());
+
+    // Past (before now) sorted most-recent-first so the closest past items appear above older ones
+    const past = meetingsForDay
+      .filter(m => new Date(m.dateTime) < now)
+      .sort((a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime());
+
+    return [...upcoming, ...past];
   };
+
+  // Determine the next upcoming meeting for today (scheduled and in the future) and pin it
+  // Use filteredMeetings so the pin respects search/filters
+  const pinnedMeeting = (() => {
+    const now = new Date();
+    const today = new Date();
+    const upcomingToday = filteredMeetings
+      .filter(
+        (m) =>
+          m.status === 'scheduled' &&
+          isSameDay(m.dateTime, today) &&
+          new Date(m.dateTime) > now
+      )
+      .sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime());
+
+    return upcomingToday[0] ?? null;
+  })();
 
   // Handlers
   const handleCreateMeeting = async (data: MeetingFormData) => {
@@ -153,112 +182,126 @@ export default function DashboardPage() {
   };
 
   return (
-  // Use full width with reduced left/right padding so content sits closer to the sidebar
-  <div className="w-full px-4 md:px-6 lg:px-6 xl:px-8 2xl:px-10 space-y-6 pb-10">
+  // Full width container closer to the sidebar
+  <div className="w-full px-6 md:px-8 lg:px-10 xl:px-12 pb-10 overflow-x-hidden bg-gray-50/50">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-4xl font-bold text-gray-900 tracking-tight mb-2">
-            Meeting Schedule
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-6 pt-6">
+        <div className="flex-1 max-w-2xl">
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-1">
+            Tasks for Today
           </h1>
-          <p className="text-gray-600 font-medium">
+          <p className="text-sm text-gray-600 mb-4">
             Manage your doctor meetings across hospitals
           </p>
+
+          {/* Move search bar to the top */}
+          <div className="w-full">
+            <FilterSearchBar
+              onSearch={handleSearch}
+              onFilterStatus={handleFilterStatus}
+              onFilterHospital={handleFilterHospital}
+              hospitals={hospitals}
+            />
+          </div>
         </div>
-        <Button
-          variant="primary"
-          icon={<Plus className="w-5 h-5" />}
-          onClick={() => setIsModalOpen(true)}
-          className="shadow-lg-soft"
-        >
-          New Meeting
-        </Button>
+
+        <div className="flex items-center gap-3">
+          <Button
+            variant="primary"
+            icon={<Plus className="w-5 h-5" />}
+            onClick={() => setIsModalOpen(true)}
+            className="shadow-sm"
+          >
+            New Meeting
+          </Button>
+        </div>
       </div>
 
-      {/* Week Navigation */}
-      <WeekNavigation
-        currentWeek={currentWeek}
-        onPreviousWeek={() => setCurrentWeek(getPreviousWeek(currentWeek))}
-        onNextWeek={() => setCurrentWeek(getNextWeek(currentWeek))}
-        onToday={() => setCurrentWeek(getCurrentWeek().start)}
-      />
+      {/* Two-column layout: left = today's vertical list (bounded & scrollable), right = controls (sticky) */}
+      <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left column: Today's meetings - occupy 8/12 on large screens */}
+        <div className="col-span-1 lg:col-span-8 flex flex-col">
+          {loading ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600">Loading meetings...</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4 h-full">
+              {(() => {
+                const today = new Date();
+                const dayMeetings = getMeetingsForDay(today);
 
-      {/* Weekly Summary */}
-      <WeeklySummaryCard summary={weeklySummary} />
-
-      {/* Search and Filters */}
-      <FilterSearchBar
-        onSearch={handleSearch}
-        onFilterStatus={handleFilterStatus}
-        onFilterHospital={handleFilterHospital}
-        hospitals={hospitals}
-      />
-
-      {/* Loading State */}
-      {loading ? (
-        <div className="text-center py-12">
-          <p className="text-gray-600">Loading meetings...</p>
-        </div>
-      ) : (
-        <>
-          {/* Week View */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 auto-rows-min">
-            {weekDays.map((day) => {
-              const dayMeetings = getMeetingsForDay(day);
-              const isCurrentDay = isToday(day);
-
-              return (
-                <div key={day.toISOString()} className="flex flex-col min-h-0" style={{ minWidth: 230 }}>
-                  {/* Day Header - Sticky */}
-                  <div className={`
-                    sticky top-0 z-10 bg-white/90 backdrop-blur-sm border rounded-2xl p-4 shadow-md-soft mb-3
-                    ${isCurrentDay ? 'ring-2 ring-blue-400/50 border-blue-200 bg-gradient-to-br from-blue-50/80 to-indigo-50/50' : 'border-gray-200/50'}
-                  `}>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className={`text-lg font-bold ${isCurrentDay ? 'text-blue-900' : 'text-gray-900'} tracking-tight`}>
-                          {getDayName(day, true)}
-                        </h3>
-                        <p className={`text-sm font-semibold ${isCurrentDay ? 'text-blue-700' : 'text-gray-600'}`}>
-                          {formatDate(day, 'MMM D')}
-                        </p>
-                      </div>
-                      <div className={`
-                        px-3 py-1.5 rounded-full text-xs font-bold
-                        ${isCurrentDay 
-                          ? 'bg-blue-500 text-white shadow-md-soft' 
-                          : 'bg-gray-100 text-gray-700'
-                        }
-                      `}>
-                        {dayMeetings.length} {dayMeetings.length === 1 ? 'meeting' : 'meetings'}
+                return (
+                  <div className="w-full flex flex-col min-h-0">
+                    <div className="bg-white border border-gray-200/60 rounded-xl p-4 shadow-sm mb-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-lg font-bold text-gray-900">
+                            Today — {formatDate(today, 'ddd, MMM D')}
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            {formatDate(today, 'YYYY')}
+                          </p>
+                        </div>
+                        <div className="px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-600 text-white">
+                          {dayMeetings.length} {dayMeetings.length === 1 ? 'meeting' : 'meetings'}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Meetings - Scrollable Container */}
-                  <div className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400">
-                    {dayMeetings.length > 0 ? (
-                      dayMeetings.map((meeting) => (
+                    {/* Pinned next-up meeting (if any) - shown above the scrollable list */}
+                    {pinnedMeeting && (
+                      <div className="mb-4">
                         <MeetingCard
-                          key={meeting.id}
-                          meeting={meeting}
+                          meeting={pinnedMeeting}
                           onEdit={handleEditMeeting}
                           onDelete={handleDeleteMeeting}
                           onStatusChange={handleStatusChange}
+                          isPinned
                         />
-                      ))
-                    ) : (
-                      <div className="bg-white/50 backdrop-blur-sm border border-gray-200/50 border-dashed rounded-2xl p-6 text-center">
-                        <p className="text-sm text-gray-500 font-medium">No meetings scheduled</p>
                       </div>
                     )}
+
+                    {/* Bounded scrollable list to prevent endless page scrolling */}
+                    <div className="overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 max-h-[calc(100vh-20rem)]">
+                      {dayMeetings.length > 0 ? (
+                        dayMeetings
+                          .filter((m) => m.id !== pinnedMeeting?.id)
+                          .map((meeting) => (
+                            <MeetingCard
+                              key={meeting.id}
+                              meeting={meeting}
+                              onEdit={handleEditMeeting}
+                              onDelete={handleDeleteMeeting}
+                              onStatusChange={handleStatusChange}
+                            />
+                          ))
+                      ) : (
+                        <div className="bg-white rounded-xl p-8 border border-gray-200/60 text-center">
+                          <p className="text-sm text-gray-600">No meetings scheduled for today</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })()}
+            </div>
+          )}
+        </div>
+
+        {/* Right column: Controls - occupy 4/12 on large screens */}
+        <aside className="col-span-1 lg:col-span-4">
+          <div className="sticky top-24 space-y-4">
+            <TodaySummaryCard
+              total={filteredMeetings.filter(m => isToday(m.dateTime)).length}
+              scheduled={filteredMeetings.filter(m => isToday(m.dateTime) && m.status === 'scheduled').length}
+              done={filteredMeetings.filter(m => isToday(m.dateTime) && m.status === 'done').length}
+              canceled={filteredMeetings.filter(m => isToday(m.dateTime) && m.status === 'canceled').length}
+              nextUpTime={pinnedMeeting ? new Date(pinnedMeeting.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null}
+            />
           </div>
-        </>
-      )}
+        </aside>
+      </div>
 
       {/* Meeting Form Modal */}
       <MeetingFormModal

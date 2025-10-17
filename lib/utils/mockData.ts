@@ -174,6 +174,55 @@ export function generateMockMeetings(count: number = 15): Meeting[] {
 }
 
 /**
+ * Generate deterministic meetings for weekdays (Mon-Fri) with exact per-day count.
+ * This ensures the UI shows exactly `perDay` meetings for each weekday of the current week.
+ */
+export function generateWeekdayMeetings(perDay: number = 20): Meeting[] {
+  const meetings: Meeting[] = [];
+  const now = dayjs();
+  const startOfWeek = now.startOf('isoWeek');
+
+  // We'll create slots from 8:00 AM in 30-minute increments to fill perDay slots.
+  // This requires perDay <= 24*2 but typical use will be 20 -> 8:00 - 17:30
+  for (let weekday = 1; weekday <= 5; weekday++) {
+    for (let slot = 0; slot < perDay; slot++) {
+      const hour = 8 + Math.floor(slot / 2);
+      const minute = slot % 2 === 0 ? 0 : 30;
+
+      const dateTime = startOfWeek
+        .add(weekday, 'day')
+        .hour(hour)
+        .minute(minute)
+        .second(0)
+        .millisecond(0);
+
+      const hospital = MOCK_HOSPITALS[(weekday + slot) % MOCK_HOSPITALS.length];
+      const doctor = DOCTOR_NAMES[(weekday * slot + slot) % DOCTOR_NAMES.length] || DOCTOR_NAMES[slot % DOCTOR_NAMES.length];
+      const purpose = MEETING_PURPOSES[(weekday + slot) % MEETING_PURPOSES.length];
+
+      // Status: past -> done, future or now -> scheduled. No canceled statuses for now.
+      const status: MeetingStatus = dateTime.isBefore(now) ? 'done' : 'scheduled';
+
+      meetings.push({
+        id: generateId(),
+        doctorName: doctor,
+        hospitalId: hospital.id,
+        hospitalName: hospital.name,
+        hospitalAddress: `${hospital.address}, ${hospital.city}`,
+        dateTime: dateTime.toISOString(),
+        purpose,
+        notes: Math.random() > 0.6 ? 'Important meeting' : undefined,
+        status,
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString(),
+      });
+    }
+  }
+
+  return meetings.sort((a, b) => dayjs(a.dateTime).valueOf() - dayjs(b.dateTime).valueOf());
+}
+
+/**
  * Get a random hospital
  */
 export function getRandomHospital(): Hospital {
