@@ -231,31 +231,38 @@ export default function MeetingFormModal({
           
           {/* Hospital */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Hospital *
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Hospital
             </label>
-            <select
-              value={formData.hospitalId}
-              onChange={(e) => handleHospitalChange(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all shadow-sm hover:shadow-md"
-              required
-              suppressHydrationWarning
-            >
-              <option value="">Select a hospital</option>
-              {hospitals.map((hospital) => (
-                <option key={hospital.id} value={hospital.id}>
-                  {hospital.name} - {hospital.city}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={formData.hospitalId}
+                onChange={(e) => handleHospitalChange(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white hover:bg-gray-50 appearance-none cursor-pointer text-gray-900 transition-colors"
+                required
+                suppressHydrationWarning
+              >
+                <option value="">Select a hospital</option>
+                {hospitals.map((hospital) => (
+                  <option key={hospital.id} value={hospital.id}>
+                    {hospital.name} - {hospital.city}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Date & Time Section */}
-        <div className="bg-gradient-to-br from-purple-50/30 to-white rounded-xl p-6 border border-purple-100/50 shadow-sm">
+        <div className="bg-gradient-to-br from-blue-50/50 to-white rounded-xl p-6 border border-blue-200/50 shadow-sm">
           <h3 className="text-sm font-bold text-gray-900 mb-5 flex items-center gap-2">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Calendar className="w-4 h-4 text-purple-600" />
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Calendar className="w-4 h-4 text-blue-600" />
             </div>
             Schedule Your Appointment
           </h3>
@@ -264,7 +271,7 @@ export default function MeetingFormModal({
             {/* Date Picker */}
             <div className="col-span-2 sm:col-span-1">
               <label className="block text-xs font-bold text-gray-700 mb-2.5 uppercase tracking-wide flex items-center gap-2">
-                <Calendar className="w-3.5 h-3.5 text-purple-600" />
+                <Calendar className="w-3.5 h-3.5 text-blue-600" />
                 Date *
               </label>
               <div className="relative">
@@ -281,7 +288,7 @@ export default function MeetingFormModal({
                       dateTime: newDateTime.toISOString()
                     }));
                   }}
-                  className="w-full px-4 py-3.5 pl-4 border-2 border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white transition-all shadow-sm hover:shadow-md hover:border-purple-300 text-gray-900 font-medium"
+                  className="w-full px-4 py-3.5 pl-4 border-2 border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all shadow-sm hover:shadow-md hover:border-blue-300 text-gray-900 font-medium"
                   required
                   suppressHydrationWarning
                 />
@@ -291,7 +298,7 @@ export default function MeetingFormModal({
             {/* Time Picker */}
             <div className="col-span-2 sm:col-span-1">
               <label className="block text-xs font-bold text-gray-700 mb-2.5 uppercase tracking-wide flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-purple-600" />
+                <Clock className="w-3.5 h-3.5 text-blue-600" />
                 Time *
               </label>
               <div className="relative">
@@ -309,7 +316,7 @@ export default function MeetingFormModal({
                       dateTime: newDateTime.toISOString()
                     }));
                   }}
-                  className="w-full px-4 py-3.5 pl-4 border-2 border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white transition-all shadow-sm hover:shadow-md hover:border-purple-300 text-gray-900 font-medium"
+                  className="w-full px-4 py-3.5 pl-4 border-2 border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all shadow-sm hover:shadow-md hover:border-blue-300 text-gray-900 font-medium"
                   required
                   suppressHydrationWarning
                 />
@@ -319,10 +326,10 @@ export default function MeetingFormModal({
 
           {/* Preview */}
           {formData.dateTime && (
-            <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-              <p className="text-sm text-purple-900">
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-900">
                 <span className="font-semibold">Scheduled for:</span>{' '}
-                <span className="text-purple-700">
+                <span className="text-blue-700">
                   {dayjs(formData.dateTime).format('dddd, MMMM D, YYYY [at] h:mm A')}
                 </span>
               </p>
@@ -331,7 +338,7 @@ export default function MeetingFormModal({
         </div>
 
         {/* Recurrence Section */}
-        <div className="bg-gradient-to-br from-indigo-50/30 to-white rounded-xl p-5 border border-indigo-100/50">
+        <div className="bg-gradient-to-br from-blue-50/30 to-white rounded-xl p-5 border border-blue-100/50">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
               <Repeat className="w-4 h-4 text-blue-600" />

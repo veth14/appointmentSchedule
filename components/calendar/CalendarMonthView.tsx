@@ -86,7 +86,7 @@ export default function CalendarMonthView({
                     onDayClick?.(day.toDate());
                   }
                 }}
-                className={`bg-white min-h-[140px] p-3 cursor-pointer transition-all hover:bg-blue-50 group relative border-r border-b border-gray-200 ${
+                className={`bg-white min-h-[120px] p-3 cursor-pointer transition-all hover:bg-blue-50 group relative border-r border-b border-gray-200 ${
                   !isCurrentMonth ? 'opacity-40 bg-gray-50' : ''
                 }`}
               >
@@ -97,54 +97,52 @@ export default function CalendarMonthView({
                   </div>
                 </div>
                 {/* Date Number */}
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-200">
                   <span
-                    className={`text-sm font-bold ${
+                    className={`text-lg font-bold ${
                       isToday
-                        ? 'bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-md'
+                        ? 'text-blue-600'
                         : isCurrentMonth
-                        ? 'text-gray-900 w-8 h-8 flex items-center justify-center'
-                        : 'text-gray-400 w-8 h-8 flex items-center justify-center'
+                        ? 'text-gray-900'
+                        : 'text-gray-400'
                     }`}
                   >
                     {day.format('D')}
                   </span>
                   {dayMeetings.length > 0 && (
-                    <span className="text-xs font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-bold text-blue-700 bg-blue-100 px-2.5 py-1 rounded-full border border-blue-200">
                       {dayMeetings.length}
                     </span>
                   )}
                 </div>
 
                 {/* Meetings */}
-                <div className="space-y-2">
-                  {dayMeetings.slice(0, 3).map((meeting) => (
+                <div className="space-y-1.5">
+                  {dayMeetings.slice(0, 2).map((meeting) => (
                     <div
                       key={meeting.id}
                       onClick={(e) => {
                         e.stopPropagation();
                         onMeetingClick(meeting);
                       }}
-                      className={`meeting-item p-2 rounded-lg text-xs cursor-pointer hover:shadow-lg transition-all shadow-md ${getStatusColor(
+                      className={`meeting-item p-2 rounded-md text-xs cursor-pointer hover:shadow-md transition-all border-l-2 ${getStatusColor(
                         meeting.status
                       )}`}
                     >
-                      <div className="font-semibold text-gray-900 truncate mb-0.5">
-                        {meeting.doctorName}
-                      </div>
-                      <div className="flex items-center gap-1 text-gray-600">
-                        <Clock className="w-3 h-3" />
-                        <span>{dayjs(meeting.dateTime).format('h:mm A')}</span>
-                      </div>
-                      <div className="text-gray-700 truncate mt-0.5">
-                        {meeting.hospitalName}
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-bold text-gray-900 truncate flex-1">
+                          {meeting.doctorName}
+                        </span>
+                        <span className="text-xs font-semibold text-gray-600 flex-shrink-0">
+                          {dayjs(meeting.dateTime).format('h:mm A')}
+                        </span>
                       </div>
                     </div>
                   ))}
-                  {dayMeetings.length > 3 && (
-                    <div className="text-xs text-blue-700 font-bold pl-2 hover:text-blue-800 cursor-pointer bg-blue-50 py-1 rounded">
-                      +{dayMeetings.length - 3} more
-                    </div>
+                  {dayMeetings.length > 2 && (
+                    <button className="w-full text-xs text-blue-700 font-bold hover:text-blue-800 cursor-pointer bg-blue-50 hover:bg-blue-100 py-1.5 rounded-md transition-colors border border-blue-200">
+                      +{dayMeetings.length - 2} more appointments
+                    </button>
                   )}
                 </div>
               </div>

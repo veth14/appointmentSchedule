@@ -25,7 +25,7 @@ type ViewMode = 'week' | 'month';
 
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState<ViewMode>('week');
+  const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [allMeetings, setAllMeetings] = useState<Meeting[]>([]);
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
