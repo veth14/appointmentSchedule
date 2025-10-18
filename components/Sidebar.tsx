@@ -8,10 +8,10 @@ import { APP_NAME } from '@/constants/appConfig';
 
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: Calendar },
-  { name: 'Meetings', href: '/dashboard', icon: Users },
-  { name: 'Calendar', href: '/dashboard', icon: Calendar },
-  { name: 'Hospitals', href: '/dashboard', icon: Building2 },
-  { name: 'Settings', href: '/dashboard', icon: Settings },
+  { name: 'Meetings', href: '/meetings', icon: Users },
+  { name: 'Calendar', href: '/calendar', icon: Calendar },
+  { name: 'Hospitals', href: '/hospitals', icon: Building2 },
+  { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -42,24 +42,24 @@ export default function Sidebar() {
         />
       )}
 
-      {/* Modern Light Sidebar */}
+      {/* Clean White Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 h-full bg-gradient-to-b from-gray-50 via-gray-100/50 to-gray-50 border-r border-gray-200 transition-all duration-300 z-40
-          w-64 shadow-xl
+          fixed top-0 left-0 h-full bg-white border-r border-gray-200 transition-all duration-300 z-40
+          w-64 shadow-sm
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
         <div className="flex flex-col h-full">
           {/* Logo/Brand */}
-          <div className="p-6 border-b border-gray-200">
+          <div className="p-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center shadow-md">
-                <Calendar className="w-5 h-5 text-white" />
+              <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
+                <Calendar className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-gray-900">
-                  {APP_NAME.split(' ')[0]}
+                <h1 className="text-base font-bold text-gray-900">
+                  Doctor
                 </h1>
                 <p className="text-xs text-gray-500">Medical Scheduler</p>
               </div>
@@ -67,8 +67,19 @@ export default function Sidebar() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-            {navItems.map((item) => {
+          <nav className="flex-1 px-4 py-2 space-y-2 overflow-y-auto relative">
+            {/* Animated background indicator */}
+            <div
+              className="absolute left-4 right-4 bg-blue-500 rounded-xl shadow-lg pointer-events-none"
+              style={{
+                height: '48px',
+                transform: `translateY(${navItems.findIndex(item => item.href === pathname) * 56}px)`,
+                transition: 'transform 1s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                opacity: navItems.some(item => item.href === pathname) ? 1 : 0,
+              }}
+            />
+            
+            {navItems.map((item, index) => {
               const isActive = pathname === item.href;
               const Icon = item.icon;
 
@@ -78,32 +89,46 @@ export default function Sidebar() {
                   href={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`
-                    group flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200
+                    group relative flex items-center gap-3 px-4 py-3 rounded-xl 
+                    transition-all duration-300 ease-out z-10
                     ${
                       isActive
-                        ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md'
-                        : 'text-gray-700 hover:bg-gray-200/60 hover:text-gray-900'
+                        ? 'text-white'
+                        : 'text-gray-700 hover:bg-gray-100 hover:shadow-sm'
                     }
                   `}
                 >
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-blue-600'}`} />
-                  <span className="text-sm font-medium">{item.name}</span>
+                  <Icon className={`w-5 h-5 transition-all duration-300 ease-out ${
+                    isActive 
+                      ? 'text-white scale-110' 
+                      : 'text-gray-500 group-hover:scale-110'
+                  }`} />
+                  <span className={`text-sm font-medium transition-all duration-300 ease-out ${
+                    isActive ? 'translate-x-0.5' : ''
+                  }`}>
+                    {item.name}
+                  </span>
+                  
+                  {/* Active indicator dot */}
+                  <div className={`ml-auto transition-all duration-300 ease-out ${
+                    isActive ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
+                  }`}>
+                    <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  </div>
                 </Link>
               );
             })}
           </nav>
 
           {/* Footer */}
-          <div className="p-4 border-t border-gray-200">
-            <div className="px-3 py-3 bg-gray-100 rounded-lg border border-gray-200">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                <p className="text-xs text-gray-600 font-medium">v1.0.0</p>
-              </div>
-              <p className="text-xs text-gray-500">
-                © 2025 MedSchedule
-              </p>
+          <div className="p-6 border-t border-gray-100">
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+              <span className="font-medium">v1.0.0</span>
             </div>
+            <p className="text-xs text-gray-400 mt-1">
+              © 2025 MedSchedule
+            </p>
           </div>
         </div>
       </aside>

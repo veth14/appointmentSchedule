@@ -128,44 +128,21 @@ export default function MeetingCard({
       </div>
 
       {/* Status Badge and Actions - Right aligned */}
-      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
         <StatusBadge status={meeting.status} size="sm" />
         
-        <div className="flex items-center gap-1.5">
         {meeting.status !== 'done' && (
           <button
             onClick={(e) => {
               e.stopPropagation();
               onStatusChange(meeting.id, 'done');
             }}
-            className="p-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200"
+            className="p-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl shadow-md hover:shadow-lg hover:scale-110 transition-all duration-200 flex items-center justify-center"
             title="Mark as done"
           >
-            <CheckCircle2 className="w-4 h-4" />
+            <CheckCircle2 className="w-5 h-5" />
           </button>
         )}
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(meeting);
-            }}
-            className="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-100 transition-all duration-200 opacity-0 group-hover:opacity-100"
-            title="Edit"
-          >
-            <Edit2 className="w-3.5 h-3.5 text-blue-700" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDelete();
-            }}
-            className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 border border-red-100 transition-all duration-200 opacity-0 group-hover:opacity-100"
-            title="Delete"
-          >
-            <Trash2 className="w-3.5 h-3.5 text-red-700" />
-          </button>
-        </div>
       </div>
     </div>
   );

@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Meeting, MeetingFormData, MeetingStatus } from '@/types/meeting';
+import { Meeting, MeetingFormData, MeetingStatus, RecurrenceFrequency } from '@/types/meeting';
 import { Hospital } from '@/types/hospital';
 import { Modal, Button } from '@/components/ui';
 import { validateMeetingForm } from '@/lib/utils/validators';
 import { formatISODateTime } from '@/lib/utils/dateHelpers';
 import dayjs from 'dayjs';
 import { STATUS_OPTIONS } from '@/constants/statusConfig';
-import { User, Building2, Calendar, Clock, FileText, AlertCircle, Stethoscope } from 'lucide-react';
+import { User, Building2, Calendar, Clock, FileText, AlertCircle, Stethoscope, Repeat } from 'lucide-react';
 
 interface MeetingFormModalProps {
   isOpen: boolean;
@@ -16,6 +16,7 @@ interface MeetingFormModalProps {
   onSubmit: (data: MeetingFormData) => Promise<void>;
   hospitals: Hospital[];
   meeting?: Meeting | null;
+  initialDateTime?: Date;
 }
 
 export default function MeetingFormModal({
@@ -24,6 +25,7 @@ export default function MeetingFormModal({
   onSubmit,
   hospitals,
   meeting,
+  initialDateTime,
 }: MeetingFormModalProps) {
   const [formData, setFormData] = useState<MeetingFormData>({
     doctorName: '',
@@ -34,7 +36,11 @@ export default function MeetingFormModal({
     status: 'scheduled',
     purpose: '',
     notes: '',
+    recurrence: undefined,
   });
+
+  const [recurrenceEnabled, setRecurrenceEnabled] = useState(false);
+  const [recurrenceEndType, setRecurrenceEndType] = useState<'never' | 'on' | 'after'>('never');
 
   const [errors, setErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,22 +57,38 @@ export default function MeetingFormModal({
         status: meeting.status,
         purpose: meeting.purpose || '',
         notes: meeting.notes || '',
+        recurrence: meeting.recurrence,
       });
+      setRecurrenceEnabled(!!meeting.recurrence && meeting.recurrence.frequency !== 'none');
+      if (meeting.recurrence?.endDate) {
+        setRecurrenceEndType('on');
+      } else if (meeting.recurrence?.count) {
+        setRecurrenceEndType('after');
+      } else {
+        setRecurrenceEndType('never');
+      }
     } else {
       // Reset form for new meeting
+      const defaultDateTime = initialDateTime 
+        ? dayjs(initialDateTime).toISOString()
+        : dayjs().add(1, 'hour').startOf('hour').toISOString();
+        
       setFormData({
         doctorName: '',
         hospitalId: '',
         hospitalName: '',
         hospitalAddress: '',
-        dateTime: dayjs().add(1, 'hour').startOf('hour').toISOString(),
+        dateTime: defaultDateTime,
         status: 'scheduled',
         purpose: '',
         notes: '',
+        recurrence: undefined,
       });
+      setRecurrenceEnabled(false);
+      setRecurrenceEndType('never');
     }
     setErrors([]);
-  }, [meeting, isOpen]);
+  }, [meeting, isOpen, initialDateTime]);
 
   const handleHospitalChange = (hospitalId: string) => {
     const hospital = hospitals.find(h => h.id === hospitalId);
@@ -83,7 +105,20 @@ export default function MeetingFormModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const validationErrors = validateMeetingForm(formData);
+    // Prepare form data with recurrence
+    const submitData = { ...formData };
+    if (recurrenceEnabled && formData.recurrence) {
+      // Clean up recurrence based on end type
+      submitData.recurrence = {
+        ...formData.recurrence,
+        endDate: recurrenceEndType === 'on' ? formData.recurrence.endDate : undefined,
+        count: recurrenceEndType === 'after' ? formData.recurrence.count : undefined,
+      };
+    } else {
+      submitData.recurrence = undefined;
+    }
+    
+    const validationErrors = validateMeetingForm(submitData);
     if (validationErrors.length > 0) {
       setErrors(validationErrors);
       return;
@@ -91,13 +126,36 @@ export default function MeetingFormModal({
 
     setIsSubmitting(true);
     try {
-      await onSubmit(formData);
+      await onSubmit(submitData);
       onClose();
     } catch (error) {
       setErrors(['Failed to save meeting. Please try again.']);
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleRecurrenceToggle = (enabled: boolean) => {
+    setRecurrenceEnabled(enabled);
+    if (enabled && !formData.recurrence) {
+      setFormData(prev => ({
+        ...prev,
+        recurrence: {
+          frequency: 'weekly',
+          interval: 1,
+        },
+      }));
+    }
+  };
+
+  const updateRecurrence = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      recurrence: {
+        ...prev.recurrence!,
+        [field]: value,
+      },
+    }));
   };
 
   return (
@@ -194,51 +252,209 @@ export default function MeetingFormModal({
         </div>
 
         {/* Date & Time Section */}
-        <div className="bg-gradient-to-br from-purple-50/30 to-white rounded-xl p-5 border border-purple-100/50">
-          <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-blue-600" />
-            Schedule
+        <div className="bg-gradient-to-br from-purple-50/30 to-white rounded-xl p-6 border border-purple-100/50 shadow-sm">
+          <h3 className="text-sm font-bold text-gray-900 mb-5 flex items-center gap-2">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <Calendar className="w-4 h-4 text-purple-600" />
+            </div>
+            Schedule Your Appointment
           </h3>
           
-          <div className="grid grid-cols-1 gap-4">
-            {/* Date and Time */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-gray-600" />
-                Date and Time *
+          <div className="grid grid-cols-2 gap-4">
+            {/* Date Picker */}
+            <div className="col-span-2 sm:col-span-1">
+              <label className="block text-xs font-bold text-gray-700 mb-2.5 uppercase tracking-wide flex items-center gap-2">
+                <Calendar className="w-3.5 h-3.5 text-purple-600" />
+                Date *
               </label>
-              <input
-                type="datetime-local"
-                value={formData.dateTime ? dayjs(formData.dateTime).format('YYYY-MM-DDTHH:mm') : ''}
-                onChange={(e) => setFormData(prev => ({ 
-                  ...prev, 
-                  dateTime: e.target.value ? dayjs(e.target.value).toISOString() : ''
-                }))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all shadow-sm hover:shadow-md"
-                required
-                suppressHydrationWarning
-              />
+              <div className="relative">
+                <input
+                  type="date"
+                  value={formData.dateTime ? dayjs(formData.dateTime).format('YYYY-MM-DD') : ''}
+                  onChange={(e) => {
+                    const currentTime = formData.dateTime ? dayjs(formData.dateTime) : dayjs();
+                    const newDateTime = dayjs(e.target.value)
+                      .hour(currentTime.hour())
+                      .minute(currentTime.minute());
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      dateTime: newDateTime.toISOString()
+                    }));
+                  }}
+                  className="w-full px-4 py-3.5 pl-4 border-2 border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white transition-all shadow-sm hover:shadow-md hover:border-purple-300 text-gray-900 font-medium"
+                  required
+                  suppressHydrationWarning
+                />
+              </div>
             </div>
 
-            {/* Status */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Status
+            {/* Time Picker */}
+            <div className="col-span-2 sm:col-span-1">
+              <label className="block text-xs font-bold text-gray-700 mb-2.5 uppercase tracking-wide flex items-center gap-2">
+                <Clock className="w-3.5 h-3.5 text-purple-600" />
+                Time *
               </label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as MeetingStatus }))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all shadow-sm hover:shadow-md"
-                suppressHydrationWarning
-              >
-                {STATUS_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <input
+                  type="time"
+                  value={formData.dateTime ? dayjs(formData.dateTime).format('HH:mm') : ''}
+                  onChange={(e) => {
+                    const currentDate = formData.dateTime ? dayjs(formData.dateTime) : dayjs();
+                    const [hours, minutes] = e.target.value.split(':');
+                    const newDateTime = currentDate
+                      .hour(parseInt(hours))
+                      .minute(parseInt(minutes));
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      dateTime: newDateTime.toISOString()
+                    }));
+                  }}
+                  className="w-full px-4 py-3.5 pl-4 border-2 border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white transition-all shadow-sm hover:shadow-md hover:border-purple-300 text-gray-900 font-medium"
+                  required
+                  suppressHydrationWarning
+                />
+              </div>
             </div>
           </div>
+
+          {/* Preview */}
+          {formData.dateTime && (
+            <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+              <p className="text-sm text-purple-900">
+                <span className="font-semibold">Scheduled for:</span>{' '}
+                <span className="text-purple-700">
+                  {dayjs(formData.dateTime).format('dddd, MMMM D, YYYY [at] h:mm A')}
+                </span>
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Recurrence Section */}
+        <div className="bg-gradient-to-br from-indigo-50/30 to-white rounded-xl p-5 border border-indigo-100/50">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+              <Repeat className="w-4 h-4 text-blue-600" />
+              Repeat
+            </h3>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={recurrenceEnabled}
+                onChange={(e) => handleRecurrenceToggle(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          {recurrenceEnabled && (
+            <div className="space-y-4 mt-4 animate-slide-in-up">
+              {/* Frequency and Interval */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Repeat Every
+                  </label>
+                  <select
+                    value={formData.recurrence?.frequency || 'weekly'}
+                    onChange={(e) => updateRecurrence('frequency', e.target.value as RecurrenceFrequency)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all shadow-sm hover:shadow-md"
+                  >
+                    <option value="daily">Day</option>
+                    <option value="weekly">Week</option>
+                    <option value="monthly">Month</option>
+                    <option value="yearly">Year</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Interval
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="30"
+                    value={formData.recurrence?.interval || 1}
+                    onChange={(e) => updateRecurrence('interval', parseInt(e.target.value))}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all shadow-sm hover:shadow-md"
+                    placeholder="1"
+                  />
+                </div>
+              </div>
+
+              {/* Summary */}
+              <div className="text-sm text-gray-600 bg-blue-50 px-3 py-2 rounded-lg">
+                Repeats every {formData.recurrence?.interval || 1}{' '}
+                {formData.recurrence?.frequency === 'daily' && (formData.recurrence?.interval === 1 ? 'day' : 'days')}
+                {formData.recurrence?.frequency === 'weekly' && (formData.recurrence?.interval === 1 ? 'week' : 'weeks')}
+                {formData.recurrence?.frequency === 'monthly' && (formData.recurrence?.interval === 1 ? 'month' : 'months')}
+                {formData.recurrence?.frequency === 'yearly' && (formData.recurrence?.interval === 1 ? 'year' : 'years')}
+              </div>
+
+              {/* End Options */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Ends
+                </label>
+                <div className="space-y-3">
+                  {/* Never */}
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="recurrenceEnd"
+                      checked={recurrenceEndType === 'never'}
+                      onChange={() => setRecurrenceEndType('never')}
+                      className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">Never</span>
+                  </label>
+
+                  {/* On Date */}
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="recurrenceEnd"
+                      checked={recurrenceEndType === 'on'}
+                      onChange={() => setRecurrenceEndType('on')}
+                      className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">On</span>
+                    <input
+                      type="date"
+                      value={formData.recurrence?.endDate ? dayjs(formData.recurrence.endDate).format('YYYY-MM-DD') : ''}
+                      onChange={(e) => updateRecurrence('endDate', e.target.value ? dayjs(e.target.value).toISOString() : undefined)}
+                      disabled={recurrenceEndType !== 'on'}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
+                    />
+                  </label>
+
+                  {/* After Count */}
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="recurrenceEnd"
+                      checked={recurrenceEndType === 'after'}
+                      onChange={() => setRecurrenceEndType('after')}
+                      className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">After</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={formData.recurrence?.count || ''}
+                      onChange={(e) => updateRecurrence('count', e.target.value ? parseInt(e.target.value) : undefined)}
+                      disabled={recurrenceEndType !== 'after'}
+                      className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
+                      placeholder="10"
+                    />
+                    <span className="text-sm text-gray-700">occurrences</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Additional Details Section */}

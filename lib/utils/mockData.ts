@@ -174,34 +174,52 @@ export function generateMockMeetings(count: number = 15): Meeting[] {
 }
 
 /**
- * Generate deterministic meetings for weekdays (Mon-Fri) with exact per-day count.
- * This ensures the UI shows exactly `perDay` meetings for each weekday of the current week.
+ * Generate exactly 100 appointments divided into 5 weekdays (20 appointments per day).
+ * Creates appointments for Monday through Friday of the current week.
  */
 export function generateWeekdayMeetings(perDay: number = 20): Meeting[] {
   const meetings: Meeting[] = [];
   const now = dayjs();
-  const startOfWeek = now.startOf('isoWeek');
+  
+  // Start from Monday of the current week
+  const startDate = now.startOf('week').add(1, 'day'); // Monday
+  const totalDays = 5; // Mon-Fri
+  const totalAppointments = totalDays * perDay; // 100 appointments
+  
+  let appointmentIndex = 0;
 
-  // We'll create slots from 8:00 AM in 30-minute increments to fill perDay slots.
-  // This requires perDay <= 24*2 but typical use will be 20 -> 8:00 - 17:30
-  for (let weekday = 1; weekday <= 5; weekday++) {
+  for (let dayOffset = 0; dayOffset < totalDays; dayOffset++) {
+    const currentDay = startDate.add(dayOffset, 'day');
+    
     for (let slot = 0; slot < perDay; slot++) {
-      const hour = 8 + Math.floor(slot / 2);
-      const minute = slot % 2 === 0 ? 0 : 30;
+      // Distribute appointments from 6 AM to 8 PM (15 hours)
+      // 20 slots per day means roughly 45 minutes apart
+      const totalMinutesInDay = 15 * 60; // 15 hours
+      const minutesPerSlot = totalMinutesInDay / perDay;
+      const startHour = 6;
+      
+      const totalMinutes = slot * minutesPerSlot;
+      const hour = startHour + Math.floor(totalMinutes / 60);
+      const minute = Math.floor(totalMinutes % 60);
 
-      const dateTime = startOfWeek
-        .add(weekday, 'day')
+      const dateTime = currentDay
         .hour(hour)
         .minute(minute)
         .second(0)
         .millisecond(0);
 
-      const hospital = MOCK_HOSPITALS[(weekday + slot) % MOCK_HOSPITALS.length];
-      const doctor = DOCTOR_NAMES[(weekday * slot + slot) % DOCTOR_NAMES.length] || DOCTOR_NAMES[slot % DOCTOR_NAMES.length];
-      const purpose = MEETING_PURPOSES[(weekday + slot) % MEETING_PURPOSES.length];
+      const hospital = MOCK_HOSPITALS[appointmentIndex % MOCK_HOSPITALS.length];
+      const doctor = DOCTOR_NAMES[appointmentIndex % DOCTOR_NAMES.length];
+      const purpose = MEETING_PURPOSES[appointmentIndex % MEETING_PURPOSES.length];
 
-      // Status: past -> done, future or now -> scheduled. No canceled statuses for now.
-      const status: MeetingStatus = dateTime.isBefore(now) ? 'done' : 'scheduled';
+      // Determine status based on date - No canceled appointments
+      let status: MeetingStatus = 'scheduled';
+      if (dateTime.isBefore(now)) {
+        const rand = Math.random();
+        status = rand < 0.8 ? 'done' : 'scheduled'; // 80% done, 20% scheduled (past)
+      } else {
+        status = 'scheduled'; // All future meetings are scheduled
+      }
 
       meetings.push({
         id: generateId(),
@@ -211,11 +229,13 @@ export function generateWeekdayMeetings(perDay: number = 20): Meeting[] {
         hospitalAddress: `${hospital.address}, ${hospital.city}`,
         dateTime: dateTime.toISOString(),
         purpose,
-        notes: Math.random() > 0.6 ? 'Important meeting' : undefined,
+        notes: Math.random() > 0.7 ? 'Important meeting requiring follow-up' : undefined,
         status,
         createdAt: now.toISOString(),
         updatedAt: now.toISOString(),
       });
+      
+      appointmentIndex++;
     }
   }
 

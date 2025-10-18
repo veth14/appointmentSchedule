@@ -1,4 +1,4 @@
-import { Meeting, MeetingFormData, MeetingStatus } from '@/types/meeting';
+import { Meeting, MeetingFormData, MeetingStatus, RecurrenceRule } from '@/types/meeting';
 import { generateId, generateMockMeetings, generateWeekdayMeetings } from '@/lib/utils/mockData';
 import { getWeekRange } from '@/lib/utils/dateHelpers';
 import dayjs from 'dayjs';
@@ -7,8 +7,41 @@ import dayjs from 'dayjs';
 const isFirebaseConfigured = false; // Set to true when Firebase is configured
 
 // In-memory storage (fallback when Firebase is not configured)
-// Generate deterministic meetings: 20 meetings per weekday (5 * 20 = 100)
-let inMemoryMeetings: Meeting[] = generateWeekdayMeetings(20);
+// Generate exactly 100 appointments: 20 per day for 5 days
+let inMemoryMeetings: Meeting[] = [];
+
+// Initialize with fresh data
+function initializeMeetings() {
+  inMemoryMeetings = generateWeekdayMeetings(20);
+  const today = new Date().toISOString().split('T')[0];
+  const todayCount = inMemoryMeetings.filter(m => m.dateTime.startsWith(today)).length;
+  console.log(`✅ Generated ${inMemoryMeetings.length} total appointments`);
+  console.log(`📅 Today has ${todayCount} appointments`);
+}
+
+// Initialize on first load
+initializeMeetings();
+
+// Export reset function for development
+export function resetMeetingsData(): void {
+  console.log('🔄 Resetting meeting data...');
+  initializeMeetings();
+}
+
+/**
+ * Get all meetings
+ */
+export async function getAllMeetings(): Promise<Meeting[]> {
+  if (isFirebaseConfigured) {
+    // TODO: Implement Firebase Firestore query
+    // const snapshot = await db.collection('meetings').get();
+    // return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Meeting));
+    return [];
+  }
+
+  // Fallback: Use in-memory storage
+  return inMemoryMeetings;
+}
 
 /**
  * Get all meetings for a specific week
@@ -51,7 +84,61 @@ export async function getMeetingById(id: string): Promise<Meeting | null> {
 }
 
 /**
- * Create a new meeting
+ * Generate recurring meeting instances based on recurrence rule
+ */
+function generateRecurringInstances(
+  baseMeeting: Meeting,
+  recurrence: RecurrenceRule
+): Meeting[] {
+  const instances: Meeting[] = [];
+  const startDate = dayjs(baseMeeting.dateTime);
+  let currentDate = startDate;
+  let count = 0;
+  const maxOccurrences = recurrence.count || 100; // Default max if neither count nor end date
+  const endDate = recurrence.endDate ? dayjs(recurrence.endDate) : null;
+
+  // Generate instances
+  while (count < maxOccurrences) {
+    // Check if we've passed the end date
+    if (endDate && currentDate.isAfter(endDate)) {
+      break;
+    }
+
+    // Create instance
+    const instance: Meeting = {
+      ...baseMeeting,
+      id: generateId(),
+      dateTime: currentDate.toISOString(),
+      parentId: baseMeeting.id,
+    };
+    instances.push(instance);
+
+    count++;
+
+    // Calculate next occurrence
+    switch (recurrence.frequency) {
+      case 'daily':
+        currentDate = currentDate.add(recurrence.interval, 'day');
+        break;
+      case 'weekly':
+        currentDate = currentDate.add(recurrence.interval, 'week');
+        break;
+      case 'monthly':
+        currentDate = currentDate.add(recurrence.interval, 'month');
+        break;
+      case 'yearly':
+        currentDate = currentDate.add(recurrence.interval, 'year');
+        break;
+      default:
+        return instances; // No recurrence
+    }
+  }
+
+  return instances;
+}
+
+/**
+ * Create a new meeting (with recurrence support)
  */
 export async function createMeeting(data: MeetingFormData): Promise<Meeting> {
   const now = new Date().toISOString();
@@ -73,6 +160,13 @@ export async function createMeeting(data: MeetingFormData): Promise<Meeting> {
   } else {
     // Fallback: Use in-memory storage
     inMemoryMeetings.push(newMeeting);
+
+    // Handle recurrence
+    if (data.recurrence && data.recurrence.frequency !== 'none') {
+      const recurringInstances = generateRecurringInstances(newMeeting, data.recurrence);
+      // Skip the first instance as it's the base meeting
+      inMemoryMeetings.push(...recurringInstances.slice(1));
+    }
   }
 
   return newMeeting;
@@ -213,11 +307,3 @@ export async function searchMeetings(query: string): Promise<Meeting[]> {
   );
 }
 
-/**
- * Reset in-memory storage (for development/testing)
- */
-export function resetMeetingsData(): void {
-  if (!isFirebaseConfigured) {
-    inMemoryMeetings = generateWeekdayMeetings(20);
-  }
-}

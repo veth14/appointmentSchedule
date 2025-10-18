@@ -1,6 +1,16 @@
 // Meeting Status Types
 export type MeetingStatus = 'scheduled' | 'done' | 'canceled';
 
+// Recurrence Types
+export type RecurrenceFrequency = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+
+export interface RecurrenceRule {
+  frequency: RecurrenceFrequency;
+  interval: number; // e.g., every 2 weeks
+  endDate?: string; // ISO string - when recurrence ends
+  count?: number; // number of occurrences
+}
+
 // Meeting Interface
 export interface Meeting {
   id: string;
@@ -12,6 +22,8 @@ export interface Meeting {
   notes?: string;
   purpose?: string;
   status: MeetingStatus;
+  recurrence?: RecurrenceRule;
+  parentId?: string; // For recurring instances, reference to parent
   createdAt: string;
   updatedAt: string;
 }
@@ -26,4 +38,5 @@ export interface MeetingFormData {
   notes?: string;
   purpose?: string;
   status: MeetingStatus;
+  recurrence?: RecurrenceRule;
 }

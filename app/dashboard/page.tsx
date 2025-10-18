@@ -14,6 +14,7 @@ import MeetingPreviewPanel from '@/components/MeetingPreviewPanel';
 import LoadingScreen from '@/components/LoadingScreen';
 import {
   getMeetingsByWeek,
+  getAllMeetings,
   createMeeting,
   updateMeeting,
   deleteMeeting,
@@ -47,7 +48,7 @@ export default function DashboardPage() {
     setLoading(true);
     try {
       const [meetingsData, hospitalsData] = await Promise.all([
-        getMeetingsByWeek(currentWeek),
+        getAllMeetings(), // Load all 100 sample appointments
         getAllHospitals(),
       ]);
       setMeetings(meetingsData);
@@ -58,7 +59,7 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [currentWeek]);
+  }, []);
 
   useEffect(() => {
     // call the stable refreshData callback
@@ -266,29 +267,38 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    {/* Pinned next-up meeting (if any) - shown above the scrollable list */}
-                    {pinnedMeeting && (
-                      <div className="mb-4">
-                        <MeetingCard
-                          meeting={pinnedMeeting}
-                          onEdit={handleEditMeeting}
-                          onDelete={handleDeleteMeeting}
-                          onStatusChange={handleStatusChange}
-                          onClick={handleMeetingClick}
-                          isPinned
-                        />
-                      </div>
-                    )}
-
-                    {/* Paginated meeting list - Fixed 4 slots */}
+                    {/* Paginated meeting list - Fixed 4 slots per page */}
                     <div className="space-y-3 h-[456px]">
                       {(() => {
-                        const nonPinnedMeetings = dayMeetings.filter((m) => m.id !== pinnedMeeting?.id);
-                        // If there's a pinned meeting, show 3 regular meetings. Otherwise show 4.
-                        const itemsPerPage = pinnedMeeting ? 3 : 4;
-                        const totalPages = Math.ceil(nonPinnedMeetings.length / itemsPerPage);
+                        const now = new Date();
+                        
+                        // Sort meetings: scheduled upcoming first, then scheduled past, then done
+                        const sortedMeetings = [...dayMeetings].sort((a, b) => {
+                          const timeA = new Date(a.dateTime);
+                          const timeB = new Date(b.dateTime);
+                          const isAFuture = timeA >= now;
+                          const isBFuture = timeB >= now;
+                          const isADone = a.status === 'done';
+                          const isBDone = b.status === 'done';
+                          
+                          // Done meetings always go to the back
+                          if (isADone && !isBDone) return 1;
+                          if (!isADone && isBDone) return -1;
+                          
+                          // Both done or both not done: upcoming before past
+                          if (isAFuture !== isBFuture) {
+                            return isAFuture ? -1 : 1;
+                          }
+                          
+                          // Same category: sort by time
+                          return timeA.getTime() - timeB.getTime();
+                        });
+                        
+                        // Show 4 items per page
+                        const itemsPerPage = 4;
+                        const totalPages = Math.ceil(sortedMeetings.length / itemsPerPage);
                         const startIndex = (currentPage - 1) * itemsPerPage;
-                        const paginatedMeetings = nonPinnedMeetings.slice(startIndex, startIndex + itemsPerPage);
+                        const paginatedMeetings = sortedMeetings.slice(startIndex, startIndex + itemsPerPage);
 
                         // Create empty slots to always show exactly itemsPerPage slots
                         const emptySlots = itemsPerPage - paginatedMeetings.length;
@@ -328,7 +338,7 @@ export default function DashboardPage() {
                                 ))}
                               </>
                             ) : (
-                              <div className="card-elevated p-10 text-center animate-fade-in h-full flex flex-col items-center justify-center">
+                              <div className="card-elevated p-10 text-center animate-fade-in h-[610px] flex flex-col items-center justify-center">
                                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                   <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -357,7 +367,7 @@ export default function DashboardPage() {
                                       Page {currentPage} of {totalPages}
                                     </span>
                                     <span className="text-xs text-gray-500">
-                                      ({nonPinnedMeetings.length} total)
+                                      ({dayMeetings.length} total)
                                     </span>
                                   </div>
 
