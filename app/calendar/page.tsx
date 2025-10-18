@@ -245,7 +245,7 @@ export default function CalendarPage() {
         {/* Calendar View and Sidebar Container */}
         <div className="flex-1 flex overflow-hidden bg-gray-50">
           {/* Calendar View */}
-          <div className="flex-1 overflow-auto p-6 bg-gray-50" style={{ scrollbarWidth: 'thin', scrollbarColor: '#cbd5e1 #f1f5f9' }}>
+          <div className="flex-1 overflow-auto p-6 bg-gray-50 animate-fadeIn" style={{ scrollbarWidth: 'thin', scrollbarColor: '#cbd5e1 #f1f5f9' }}>
             {viewMode === 'week' ? (
               <CalendarWeekView
                 currentDate={currentDate}
@@ -266,7 +266,7 @@ export default function CalendarPage() {
           </div>
 
           {/* Right Sidebar - Upcoming Appointments */}
-          <div className="flex-shrink-0 flex py-6">
+          <div className="flex-shrink-0 flex py-6 animate-slideInRight">
             <UpcomingAppointments
               meetings={upcomingMeetings}
               onMeetingClick={openEditModal}
